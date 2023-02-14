@@ -3,7 +3,7 @@ matriz_navios:		.word	0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
 tam:			.word	100
 
 matriz_usuario:		.string	"~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~"
-navios:			.string	"3\n1 5 1 1\n0 5 2 2\n0 1 6 4"
+navios:			.string	"3\n1 2 1 1\n0 5 2 2\n0 1 6 4"
 ql:			.string "\n"
 txt_menu:		.string	"1)reiniciar jogo\n2)imprimir matriz_navios\n3)atirar\n4)imprimir matriz_usuario\n"
 txt_erro:		.string	"valor inválido\n\n"
@@ -14,6 +14,7 @@ msg_erro:		.string "deu erro\n\n"
 msg_tiro_certo:		.string "Você acertou!\n\n"
 msg_tiro_err:		.string "Você errou!\n\n"
 msg_tiro_rep:		.string "Essa posição já foi atingida!\n\n"
+msg_barco_af:		.string "Parabéns! Você afundou um barco!\n\n"
 
 		.text
 main:
@@ -211,7 +212,7 @@ tiro_certo:
 	la a0, msg_tiro_certo
 	li a7, 4
 	ecall
-	j menu
+	j verifica_barco_afundado
 	
 tiro_errado:
 	la a0, msg_tiro_err
@@ -223,6 +224,73 @@ tiro_errado:
 	
 tiro_repetido:
 	la a0, msg_tiro_rep
+	li a7, 4
+	ecall
+	j menu
+	
+	
+verifica_barco_afundado:
+	mul s5, s5, s6
+	mv t4, s5
+	mul t4, t4, s6
+	addi s5, s5, -2
+	li s7, 8
+	mul s7, s7, s5
+	la t2, navios
+	addi t2, t2, 2
+	add t2, t2, s7
+	lb s8, 0(t2)
+	addi s8, s8, -48
+	lb s9, 2(t2)
+	addi s9, s9, -48
+	lb s10, 4(t2)
+	addi s10, s10, -48
+	lb s11, 6(t2)
+	addi s11, s11, -48
+	mv s1, zero
+	mv s2, zero
+	li s4, 4
+	beqz s8 verif_b_af_hor
+	bgtz s8 verif_b_af_vert
+
+verif_b_af_hor:
+	beq s1, s9, verifica_res
+	addi s1, s1, 1
+	la t0, matriz_navios
+	li s3, 10
+	mul s3, s3, s10
+	add s3, s3, s11
+	mul s3, s3, s4
+	add t0, t0, s3
+	mul s5, s5, s6
+	addi s11, s11, 1
+	lw t3, 0(t0)
+	bne t3, t4, verif_b_af_hor
+	addi s2, s2, 1
+	j verif_b_af_hor
+	
+verif_b_af_vert:
+	beq s1, s9, verifica_res
+	addi s1, s1, 1
+	la t0, matriz_navios
+	li s3, 10
+	mul s3, s3, s10
+	add s3, s3, s11
+	mul s3, s3, s4
+	add t0, t0, s3
+	mul s5, s5, s6
+	addi s10, s10, 1
+	lw t3, 0(t0)
+	bne t3, t4, verif_b_af_vert
+	addi s2, s2, 1
+	j verif_b_af_vert
+	
+verifica_res:
+	beq s2, s9, printa_barco_af
+	j menu
+	
+printa_barco_af:
+	la a0, msg_barco_af
 	li a7, 4
 	ecall
 	j menu
